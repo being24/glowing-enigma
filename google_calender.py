@@ -18,17 +18,33 @@ class GoogleCalendarData:
     organizer: str
     schedule_type: str
     timezone: ZoneInfo
+    html_link: str
 
 
 class GoogleCalendar:
-    def __init__(self):
-        token_path = list(pathlib.Path(__file__).parent.glob("axial*.json"))[0]
+    def __init__(self, auth_file: pathlib.Path, local_timezone: ZoneInfo):
+        """googleカレンダーのデータを取得するクラスのコンストラクタ
+
+        Args:
+            auth_file (pathlib.Path): 認証ファイルのパス
+            local_timezone (ZoneInfo): ローカル時間のタイムゾーン
+
+        Raises:
+            FileNotFoundError: 認証ファイルが存在しない場合
+        """
+
+        token_path = auth_file
+        if not token_path.exists():
+            raise FileNotFoundError(f"{token_path} not found")
+
         # Set scopes
         SCOPES = ["https://www.googleapis.com/auth/calendar"]
         # Load credentials from json file
         google_api_credential = google.auth.load_credentials_from_file(token_path, SCOPES)[0]
         # Create service object
         self.service = googleapiclient.discovery.build("calendar", "v3", credentials=google_api_credential)
+
+        self.local_timezone = local_timezone
 
     def get_calendar(
         self, calendarId: str, timeMin: str, timeMax: str, maxResults: int = 250, orderBy: str = "startTime"
@@ -79,6 +95,7 @@ class GoogleCalendar:
                 timezone = calender_timezone
             summary = event["summary"]
             organizer = event["organizer"]["email"]
+            html_link = event["htmlLink"]
 
             formatted_events.append(
                 GoogleCalendarData(
@@ -88,6 +105,7 @@ class GoogleCalendar:
                     organizer=organizer,
                     schedule_type=schedule_type,
                     timezone=timezone,
+                    html_link=html_link,
                 )
             )
         return formatted_events
@@ -102,7 +120,7 @@ class GoogleCalendar:
             List[GoogleCalendarData]: 取得したデータのリスト
         """
         # 現在時刻を取得
-        now = datetime.now(local_timezone)
+        now = datetime.now(self.local_timezone)
 
         # 次の月曜日の正子を取得
         next_monday = now + timedelta(days=(7 - now.weekday()))
@@ -119,7 +137,7 @@ class GoogleCalendar:
         )
         return events
 
-    def get_next_day_events(self, calendar_id: str) -> List[GoogleCalendarData]:
+    def get_today_events(self, calendar_id: str) -> List[GoogleCalendarData]:
         """次日のイベントを取得する関数
 
         Args:
@@ -130,7 +148,7 @@ class GoogleCalendar:
         """
 
         # 現在時刻を取得
-        now = datetime.now(local_timezone)
+        now = datetime.now(self.local_timezone)
 
         # 次の日の正子を取得
         next_day = now + timedelta(days=1)
@@ -148,7 +166,17 @@ class GoogleCalendar:
         return events
 
     def get_events(self, calendar_id: str, maxResults: int = 10) -> List[GoogleCalendarData]:
-        now = datetime.now(local_timezone)
+        """イベントを取得する関数
+
+        Args:
+            calendar_id (str): カレンダーのID
+            maxResults (int, optional): 最大取得数. Defaults to 10.
+
+        Returns:
+            List[GoogleCalendarData]: 取得したデータのリスト
+        """
+
+        now = datetime.now(self.local_timezone)
         now_shaped = self.return_shaped_datetime(now)
 
         tg_time = now + timedelta(weeks=2)
@@ -182,20 +210,26 @@ class GoogleCalendar:
             if event.schedule_type == "all_day":
                 start_time = event.start.strftime("%Y/%m/%d")
                 end_time = "All Day"
-                summary = event.summary
-                organizer = event.organizer
-                timezone = event.timezone
             else:
                 start_time = event.start.strftime("%Y/%m/%d %H:%M")
                 end_time = event.end.strftime("%Y/%m/%d %H:%M")
-                summary = event.summary
-                organizer = event.organizer
-                timezone = event.timezone
-            print(f"{start_time} {end_time} {summary} {organizer} {timezone}")
+            summary = event.summary
+            organizer = event.organizer
+            timezone = event.timezone
+            html_link = event.html_link
+            print(f"{start_time} {end_time} {summary} {organizer} {timezone}\n{html_link}")
 
 
 if __name__ == "__main__":
-    google_calender = GoogleCalendar()
+    token_path = list(pathlib.Path(__file__).parent.glob("axial*.json"))
+    if len(token_path) == 0:
+        raise FileNotFoundError("Token file not found")
+    else:
+        token_path = token_path[0]
+
+    local_timezone = ZoneInfo("Asia/Tokyo")
+
+    google_calender = GoogleCalendar(token_path, local_timezone)
 
     dotenv_path = pathlib.Path(".") / ".env"
     load_dotenv(dotenv_path)
@@ -203,8 +237,6 @@ if __name__ == "__main__":
     calendar_id = getenv("CALENDAR_ID")
     if calendar_id is None:
         raise ValueError("CALENDAR_ID is not set")
-
-    local_timezone = ZoneInfo("localtime")
 
     events = google_calender.get_events(calendar_id)
     google_calender.show_got_data(events)
