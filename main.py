@@ -47,6 +47,7 @@ if __name__ == "__main__":
     channel_id = getenv("CHANNEL_ID")
     bot_token = getenv("BOT_TOKEN")
     calendar_id = getenv("CALENDAR_ID")
+    bot_id = getenv("BOT_ID")
 
     if url is None:
         raise ValueError("URL is not set")
@@ -56,6 +57,8 @@ if __name__ == "__main__":
         raise ValueError("BOT_TOKEN is not set")
     if calendar_id is None:
         raise ValueError("CALENDAR_ID is not set")
+    if bot_id is None:
+        raise ValueError("BOT_ID is not set")
 
     token_paths = list(pathlib.Path(__file__).parent.glob("axial*.json"))
     if len(token_paths) == 0:
@@ -66,30 +69,40 @@ if __name__ == "__main__":
     local_timezone = ZoneInfo("Asia/Tokyo")
 
     gc = google_calender.GoogleCalendar(token_path, local_timezone)
-    driver = mattermost_driver.Mattermost(url=url, channel_id=channel_id, bot_token=bot_token)
+    driver = mattermost_driver.Mattermost(url=url, bot_token=bot_token, local_timezone=local_timezone)
 
     now = datetime.now(local_timezone)
 
-    # 週間予定
-    events = gc.get_next_week_events(calendar_id)
+    # 今が日曜日の19時ならば
+    if now.weekday() == 6 and now.hour == 19:
 
-    if len(events) == 0:
-        msg_header = "There is no events this week"
-    else:
-        msg_header = f"There is **{len(events)}** events this week"
+        del_list_week = driver.return_week_day_posts(now=now, channel_id=channel_id, bot_id=bot_id)
+        driver.delete_posts(del_list_week)
 
-    attachments = create_attachments(events)
+        # 週間予定
+        events = gc.get_next_week_events(calendar_id)
 
-    driver.attached_post(f"{msg_header}\n---\n", attachments)
+        if len(events) == 0:
+            msg_header = "There is no events this week"
+        else:
+            msg_header = f"There is **{len(events)}** events this week"
 
-    # 明日の予定
-    events = gc.get_today_events(calendar_id)
+        attachments = create_attachments(events)
 
-    if len(events) == 0:
-        msg_header = "There is no events today"
-    else:
-        msg_header = f"There is **{len(events)}** events today"
+        driver.attached_post(channel_id, f"{msg_header}\n---\n", attachments)
 
-    attachments = create_attachments(events)
+    # 今が7時ならば
+    if now.hour == 10:
+        del_list_one = driver.return_everyday_posts(now, channel_id, bot_id)
+        driver.delete_posts(del_list_one)
 
-    driver.attached_post(f"{msg_header}\n---\n", attachments)
+        # 本日の予定
+        events = gc.get_today_events(calendar_id)
+        if len(events) == 0:
+            msg_header = "There is no events today"
+        else:
+            msg_header = f"There is **{len(events)}** events today"
+
+        attachments = create_attachments(events)
+
+        driver.attached_post(channel_id, f"{msg_header}\n---\n", attachments)

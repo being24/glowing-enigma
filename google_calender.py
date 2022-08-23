@@ -38,7 +38,7 @@ class GoogleCalendar:
             raise FileNotFoundError(f"{token_path} not found")
 
         # Set scopes
-        SCOPES = ["https://www.googleapis.com/auth/calendar"]
+        SCOPES = ["https://www.googleapis.com/auth/calendar"]  # noqa
         # Load credentials from json file
         google_api_credential = google.auth.load_credentials_from_file(token_path, SCOPES)[0]
         # Create service object
@@ -47,7 +47,7 @@ class GoogleCalendar:
         self.local_timezone = local_timezone
 
     def get_calendar(
-        self, calendarId: str, timeMin: str, timeMax: str, maxResults: int = 250, orderBy: str = "startTime"
+        self, calendarId: str, timeMin: str, timeMax: str, maxResults: int = 250, orderBy: str = "startTime"  # noqa
     ) -> List[GoogleCalendarData]:
         """googleAPIを使用して条件に合うデータを取得する関数
 
@@ -137,7 +137,7 @@ class GoogleCalendar:
         )
         return events
 
-    def get_today_events(self, calendar_id: str) -> List[GoogleCalendarData]:
+    def get_next_day_events(self, calendar_id: str) -> List[GoogleCalendarData]:
         """次日のイベントを取得する関数
 
         Args:
@@ -165,7 +165,29 @@ class GoogleCalendar:
         )
         return events
 
-    def get_events(self, calendar_id: str, maxResults: int = 10) -> List[GoogleCalendarData]:
+    def get_today_events(self, calendar_id: str) -> List[GoogleCalendarData]:
+        """今日のイベントを取得する関数
+
+        Args:
+            calendar_id (str): カレンダーのID
+
+        Returns:
+            List[GoogleCalendarData]: 取得したデータのリスト
+        """
+
+        now = datetime.now(self.local_timezone)
+
+        today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        after_today = today + timedelta(days=1)
+
+        events = self.get_calendar(
+            calendarId=calendar_id,
+            timeMin=self.return_shaped_datetime(today),
+            timeMax=self.return_shaped_datetime(after_today),
+        )
+        return events
+
+    def get_events(self, calendar_id: str, maxResults: int = 10) -> List[GoogleCalendarData]:  # noqa
         """イベントを取得する関数
 
         Args:
