@@ -76,8 +76,8 @@ if __name__ == "__main__":
     # 今が日曜日の19時ならば
     if now.weekday() == 6 and now.hour == 19:
 
-        del_list_week = driver.return_week_day_posts(now=now, channel_id=channel_id, bot_id=bot_id)
-        driver.delete_posts(del_list_week)
+        # del_list_week = driver.return_week_day_posts(now=now, channel_id=channel_id, bot_id=bot_id)
+        # driver.delete_posts(del_list_week)
 
         # 週間予定
         events = gc.get_next_week_events(calendar_id)
@@ -92,9 +92,9 @@ if __name__ == "__main__":
         driver.attached_post(channel_id, f"{msg_header}\n---\n", attachments)
 
     # 今が7時ならば
-    if now.hour == 10:
-        del_list_one = driver.return_everyday_posts(now, channel_id, bot_id)
-        driver.delete_posts(del_list_one)
+    if now.hour == 7:
+        # del_list_one = driver.return_everyday_posts(now, channel_id, bot_id)
+        # driver.delete_posts(del_list_one)
 
         # 本日の予定
         events = gc.get_today_events(calendar_id)
