@@ -73,6 +73,8 @@ if __name__ == "__main__":
 
     now = datetime.now(local_timezone)
 
+    print(f"{now.strftime('%Y-%m-%d %H:%M:%S')} start")
+
     # 今が日曜日の19時ならば
     if now.weekday() == 6 and now.hour == 19:
 
