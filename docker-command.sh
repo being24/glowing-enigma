@@ -1,0 +1,1 @@
+# docker run --rm -it -v C:\programs\glowing-enigma\token:/opt/glowing-enigma/token  --env-file .env example /bin/sh
