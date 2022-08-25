@@ -1,9 +1,9 @@
+import atexit
 import pathlib
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from os import getenv
 from typing import List
-from venv import create
 from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
@@ -44,8 +44,9 @@ class Mattermost:
         self.local_timezone = local_timezone
 
         self.driver.login()
+        atexit.register(self.logout)
 
-    def __del__(self):
+    def logout(self):
         self.driver.logout()
 
     def post(self, channel_id: str, message: str):
