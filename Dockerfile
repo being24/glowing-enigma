@@ -17,4 +17,4 @@ RUN set -x && \
     rm -rf /var/cache/apk/*  && \
     echo "Hello, ${REP_NAME} ready!"
 
-CMD ["/opt/glowing-enigma/main.py"]
+CMD ["python3", "/opt/glowing-enigma/main.py"]

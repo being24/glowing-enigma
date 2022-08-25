@@ -60,7 +60,9 @@ if __name__ == "__main__":
     if bot_id is None:
         raise ValueError("BOT_ID is not set")
 
-    token_paths = list(pathlib.Path(__file__).parent.glob("axial*.json"))
+    token_folder = pathlib.Path(__file__).parent / "token"
+
+    token_paths = list(token_folder.glob("axial*.json"))
     if len(token_paths) == 0:
         raise FileNotFoundError("Token file not found")
     else:
