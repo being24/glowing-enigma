@@ -1,5 +1,5 @@
 google-api-python-client==2.93.0
-google-auth==2.22.0
+google-auth==2.23.2
 mattermostdriver==7.3.2
 python-dotenv==1.0.0
 tzdata==2023.3
