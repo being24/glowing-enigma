@@ -1,4 +1,4 @@
-google-api-python-client==2.93.0
+google-api-python-client==2.103.0
 google-auth==2.22.0
 mattermostdriver==7.3.2
 python-dotenv==1.0.0
