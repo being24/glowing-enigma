@@ -24,9 +24,7 @@ def create_attachments(events: list[GoogleCalendarData]) -> list[dict]:
         if event.schedule_type == "all_day":
             msg = f"{event.start.strftime('%m/%d')} all_day"
         else:
-            msg = (
-                f"{event.start.strftime('%m/%d')} from {event.start.strftime('%H:%M')} to {event.end.strftime('%H:%M')}"
-            )
+            msg = f"{event.start.strftime('%m/%d')} from {event.start.strftime('%H:%M')} to {event.end.strftime('%H:%M')}"
 
         data = {
             "color": "#87CEEB",
@@ -71,7 +69,9 @@ if __name__ == "__main__":
     local_timezone = ZoneInfo("Asia/Tokyo")
 
     gc = google_calender.GoogleCalendar(token_path, local_timezone)
-    driver = mattermost_driver.Mattermost(url=url, bot_token=bot_token, local_timezone=local_timezone)
+    driver = mattermost_driver.Mattermost(
+        url=url, bot_token=bot_token, local_timezone=local_timezone
+    )
 
     now = datetime.now(local_timezone)
 
@@ -79,7 +79,6 @@ if __name__ == "__main__":
 
     # 今が日曜日の19時ならば
     if now.weekday() == 6 and now.hour == 19:
-
         # del_list_week = driver.return_week_day_posts(now=now, channel_id=channel_id, bot_id=bot_id)
         # driver.delete_posts(del_list_week)
 
